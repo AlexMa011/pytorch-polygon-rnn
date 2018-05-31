@@ -49,10 +49,11 @@ label
 
 The png files and the json files should have corresponding same name.
 
-Execute the following command to make directories for new data:
+Execute the following command to make directories for new data and save models:
 ```
 mkdir -p new_img/(train/val/test)
 mkdir -p new_label/(train/val/test)
+mkdir save
 ```
 
 2. Run the following command to generate data for train/validation/test.
