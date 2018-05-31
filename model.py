@@ -7,6 +7,7 @@ import torch.utils.model_zoo as model_zoo
 import wget
 from pathlib import Path
 
+
 class PolygonNet(nn.Module):
     
     def __init__(self,load_vgg=True):
