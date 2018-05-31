@@ -1,40 +1,48 @@
-from glob import glob
-import numpy as np
-import json
-from PIL import Image
 import torch
 from torch import utils
+from torch.utils.data.dataset import Dataset
+import torch.utils.data as data
+from PIL import Image
+import numpy as np
+import json
 
-def load_data(data_num, data_set, len_s, batch_size):
-    files = glob('new_img/'+data_set+'/*.png')
-    ind = 0
-    count = 0
-    img_array = np.zeros([data_num, 3, 224, 224])
-    label_array = np.zeros([data_num, len_s, 28 * 28 + 3])
-    label_index_array = np.zeros([data_num, len_s])
-    label_array[:, 0, 28 * 28 + 1] = 1
-    label_array[:, 1, 28 * 28 + 2] = 1
-    label_index_array[:, 0] = 28 * 28 + 1
-    label_index_array[:, 1] = 28 * 28 + 2
-    
-    for file in files:
-        I = np.rollaxis(np.array(Image.open(file)), 2)
-        img_array[count] = I
-        json_file = json.load(open('new_label' + file[7:-4] + '.json'))
+
+class newdataset(Dataset):
+    def __init__(self, data_num, data_set, len_s, transform = None):
+        self.num = data_num
+        self.dataset = data_set
+        self.length = len_s
+        self.transform = transform
+        # stuff
+
+    def __getitem__(self, index):
+        # stuff
+        img_name = 'new_img/{}/{}.png'.format(self.dataset, index)
+        label_name = 'new_label/{}/{}.json'.format(self.dataset, index)
+        try:
+            img = Image.open(img_name).convert('RGB')
+        #             img = np.rollaxis(np.array(Image.open(img_name)),0, 2)
+        except FileNotFoundError:
+            return None
+        assert not (img is None)
+        json_file = json.load(open(label_name))
         point_num = len(json_file['polygon'])
         polygon = np.array(json_file['polygon'])
         point_count = 2
-        if point_num < len_s - 3:
+        #         img_array = np.zeros([data_num, 3, 224, 224])
+        label_array = np.zeros([self.length, 28 * 28 + 3])
+        label_index_array = np.zeros([self.length])
+        if point_num < self.length - 3:
             for points in polygon:
                 index_a = int(points[0] / 8)
                 index_b = int(points[1] / 8)
                 index = index_b * 28 + index_a
-                label_array[count, point_count, index] = 1
-                label_index_array[count, point_count] = index
+                label_array[point_count, index] = 1
+                label_index_array[point_count] = index
                 point_count += 1
-            label_array[count, point_count, 28 * 28] = 1
-            label_index_array[count, point_count] = 28 * 28
-            for kkk in range(point_count + 1, len_s):
+            label_array[point_count, 28 * 28] = 1
+            label_index_array[point_count] = 28 * 28
+            for kkk in range(point_count + 1, self.length):
                 if kkk % (point_num + 3) == point_num + 2:
                     index = 28 * 28
                 elif kkk % (point_num + 3) == 0:
@@ -45,51 +53,32 @@ def load_data(data_num, data_set, len_s, batch_size):
                     index_a = int(polygon[kkk % (point_num + 3) - 2][0] / 8)
                     index_b = int(polygon[kkk % (point_num + 3) - 2][1] / 8)
                     index = index_b * 28 + index_a
-                label_array[count, kkk, index] = 1
-                label_index_array[count, kkk] = index
+                label_array[kkk, index] = 1
+                label_index_array[kkk] = index
         else:
-            scale = point_num * 1.0 / (len_s - 3)
-            index_list = (np.arange(0, len_s - 3) * scale).astype(int)
+            scale = point_num * 1.0 / (self.length - 3)
+            index_list = (np.arange(0, self.length - 3) * scale).astype(int)
             for points in polygon[index_list]:
                 index_a = int(points[0] / 8)
                 index_b = int(points[1] / 8)
                 index = index_b * 28 + index_a
-                label_array[count, point_count, index] = 1
-                label_index_array[count, point_count] = index
+                label_array[point_count, index] = 1
+                label_index_array[point_count] = index
                 point_count += 1
-            for kkk in range(point_count, len_s):
+            for kkk in range(point_count, self.length):
                 index = 28 * 28
-                label_array[count, kkk, index] = 1
-                label_index_array[count, kkk] = index
-        count += 1
-        if count >= data_num:
-            break
+                label_array[kkk, index] = 1
+                label_index_array[kkk] = index
 
-    
-        if (count / 10000 >= ind):
-            ind += 1
-            print('Load {} data '.format(count))
-    
+        if self.transform is not None:
+            img = self.transform(img)
+        #         stride = self.length - 2
+        return (img, label_array[2], label_array[:-2], label_array[1:-1], label_index_array[2:])
 
-    print('Load all data!')
+    def __len__(self):
+        return self.num  # of how many examples(images?) you have
 
-    stride = len_s - 2
-    input1_array = label_array[:, 2, :]
-    input2_array = label_array[:, 0:0 + stride, :]
-    input3_array = label_array[:, 1:1 + stride, :]
-    target_array = label_index_array[:, 2:2 + stride]
-    x = torch.from_numpy(img_array[:])
-    x1 = torch.from_numpy(input1_array)
-    x2 = torch.from_numpy(input2_array)
-    x3 = torch.from_numpy(input3_array)
-    t = torch.from_numpy(target_array).contiguous().long()
-    print(x.shape)
-    print(x1.shape)
-    print(x2.shape)
-    print(x3.shape)
-    print(t.shape)
-
-    Dataset = utils.data.TensorDataset(x, x1, x2, x3, t)
-    Dataloader = utils.data.DataLoader(Dataset, batch_size=batch_size, shuffle=True, drop_last=False)
-
+def load_data(data_num, data_set, len_s, batch_size):
+    datas = newdataset(data_num, data_set, len_s)
+    Dataloader = torch.utils.data.DataLoader(datas, batch_size=batch_size, shuffle=True, drop_last=True)
     return Dataloader
