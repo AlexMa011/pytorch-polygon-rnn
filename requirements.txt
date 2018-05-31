@@ -1,0 +1,6 @@
+wget==3.2
+torchvision==0.2.1
+numpy==1.14.3
+torch==0.4.0
+Pillow==5.1.0
+tensorboardX==1.2

@@ -1,8 +1,9 @@
 from glob import glob
 import json
-import cv2
+#import cv2
 import numpy as np
 import argparse
+from PIL import Image
 
 parser = argparse.ArgumentParser(description='manual to this script')
 parser.add_argument('--data', type=str, default="train")
@@ -38,11 +39,17 @@ for file in files:
             object_w = max_col - min_col
             scale_h = 224.0 / object_h
             scale_w = 224.0 / object_w
-            I = cv2.imread(file)
-            I_obj = I[min_row:max_row, min_col:max_col, :]
-            I_obj_new = cv2.resize(I_obj, (224, 224))
-            cv2.imwrite('new_img/'+dataset+'/'+ str(count) + '.png', I_obj_new)
-            I_obj = np.rollaxis(I_obj_new, 2)
+            I = Image.open(file)
+            I_obj = I.crop(box=(min_col,min_row,max_col,max_row))
+            I_obj_new =  I_obj.resize((224,224),Image.BILINEAR)
+            I_obj_new.save('new_img/'+dataset+'/'+ str(count) + '.png','PNG')
+#            I_obj_new = np.array(I_obj_new)
+#            I = np.array(I)
+#I = cv2.imread(file)
+#            I_obj = I[min_row:max_row, min_col:max_col, :]
+#            I_obj_new = cv2.resize(I_obj, (224, 224))
+#            cv2.imwrite('new_img/'+dataset+'/'+ str(count) + '.png', I_obj_new)
+#            I_obj = np.rollaxis(I_obj_new, 2)
             point_count = 0
             last_index_a = -1
             last_index_b = -1

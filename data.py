@@ -5,7 +5,7 @@ import torch.utils.data as data
 from PIL import Image
 import numpy as np
 import json
-
+from torchvision import transforms
 
 class newdataset(Dataset):
     def __init__(self, data_num, data_set, len_s, transform = None):
@@ -79,6 +79,7 @@ class newdataset(Dataset):
         return self.num  # of how many examples(images?) you have
 
 def load_data(data_num, data_set, len_s, batch_size):
-    datas = newdataset(data_num, data_set, len_s)
+    trans = transforms.ToTensor()
+    datas = newdataset(data_num, data_set, len_s,trans)
     Dataloader = torch.utils.data.DataLoader(datas, batch_size=batch_size, shuffle=True, drop_last=True)
     return Dataloader

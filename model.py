@@ -3,8 +3,10 @@ from torch import nn
 from torch.autograd import Variable
 import torch.nn.init
 from utils.convlstm import ConvLSTM
+import torch.utils.model_zoo as model_zoo
+import wget
+from pathlib import Path
 
-    
 class PolygonNet(nn.Module):
     
     def __init__(self,load_vgg=True):
@@ -136,8 +138,16 @@ class PolygonNet(nn.Module):
                 nn.init.constant_(param, 0.0)
             elif 'weight' in name and 'convlayer' in name and '0' in name:
                 nn.init.xavier_normal_(param)
-        if load_vgg:
+        vgg_file = Path('vgg16_bn-6c64b313.pth')
+        if vgg_file.is_file():
             vgg16_dict = torch.load('vgg16_bn-6c64b313.pth')
+        else:
+            if load_vgg:
+                try:
+                    wget.download('https://download.pytorch.org/models/vgg16_bn-6c64b313.pth')
+                    vgg16_dict = torch.load('vgg16_bn-6c64b313.pth')
+                except:
+                    vgg16_dict = torch.load(model_zoo.load_url('https://download.pytorch.org/models/vgg16_bn-6c64b313.pth'))
             vgg_name = []
             for name in vgg16_dict:
                 if 'feature' in name:
