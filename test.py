@@ -16,6 +16,7 @@ parser.add_argument('--gpu_id', nargs='+',type=int)
 parser.add_argument('--batch_size', type=int, default=8)
 parser.add_argument('--num', type=int, default=45000)
 parser.add_argument('--test_mode', type=str, default='full')
+parser.add_argument('--model', type=str, default='./save/model.pth')
 args = parser.parse_args()
 
 devices=args.gpu_id
@@ -26,7 +27,7 @@ num = args.num
 torch.cuda.set_device(devices[0])
 net = PolygonNet(load_vgg=False)
 net = nn.DataParallel(net,device_ids=devices)
-net.load_state_dict(torch.load('../polygon/save/third3.pth'))
+net.load_state_dict(torch.load(args.model))
 net.cuda()
 print('finished')
 
