@@ -1,5 +1,6 @@
 # pytorch-polygon-rnn
-Pytorch implementation of Polygon-RNN
+Pytorch implementation of Polygon-RNN. 
+Notice that I use another way to handle the first vertex instead of training another model as in the paper.
 
 
 ### Download and Preprocess Data
