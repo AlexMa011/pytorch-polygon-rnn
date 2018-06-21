@@ -1,5 +1,5 @@
 # pytorch-polygon-rnn
-Pytorch implementation of Polygon-RNN. 
+Pytorch implementation of [Polygon-RNN](http://www.cs.toronto.edu/polyrnn/poly_cvpr17/). 
 Notice that I use another way to handle the first vertex instead of training another model as in the paper.
 
 
@@ -66,3 +66,7 @@ python generate_data.py --data train/val/test
 ```
 python train.py --gpu_id 0 1 2 --batch_size 4 --pretrained False --lr 0.001
 ```
+
+4. Run the following command to test.
+```
+python test.py --gpu_id 0 1 2 --mode full/small --model ./save/model.pth
