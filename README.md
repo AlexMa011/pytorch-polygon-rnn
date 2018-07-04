@@ -3,7 +3,13 @@ Pytorch implementation of [Polygon-RNN](http://www.cs.toronto.edu/polyrnn/poly_c
 Notice that I use another way to handle the first vertex instead of training another model as in the paper.
 
 
-### Download and Preprocess Data
+### Difference with the original paper
+
+1. I use two virtual starting vertices to handle the first vertex as in the image captioning.
+
+2. I add a LSTM layer after the ConvLSTM layers since I need the output to be  D\*D+1 dimension to handle the end symbol.
+
+### How to train and test
 
 1. Download data from [CityScapes](https://www.cityscapes-dataset.com/downloads/), organize
 the image files and annotation json files as follows:
