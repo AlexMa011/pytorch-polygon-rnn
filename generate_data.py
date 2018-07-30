@@ -35,7 +35,7 @@ for file in files:
             min_row = np.maximum(0, min_c[1] - h_extend)
             min_col = np.maximum(0, min_c[0] - w_extend)
             max_row = np.minimum(h, max_c[1] + h_extend)
-            max_col = np.minimum(w, max_c[0] + h_extend)
+            max_col = np.minimum(w, max_c[0] + w_extend)
             object_h = max_row - min_row
             object_w = max_col - min_col
             scale_h = 224.0 / object_h
