@@ -1,39 +1,39 @@
-from torch import nn
-from torch import optim
-from torch.autograd import Variable
-import torch.utils.data
-from tensorboardX import SummaryWriter
 import argparse
-from data import load_data
-from model import PolygonNet
-from PIL import Image, ImageDraw
-import numpy as np
 import json
 from glob import glob
 
+import numpy as np
+import torch.utils.data
+from PIL import Image, ImageDraw
+from torch import nn
+from torch.autograd import Variable
+
+from data import load_data
+from model import PolygonNet
+
 parser = argparse.ArgumentParser(description='manual to this script')
-parser.add_argument('--gpu_id', nargs='+',type=int)
+parser.add_argument('--gpu_id', nargs='+', type=int)
 parser.add_argument('--batch_size', type=int, default=8)
 parser.add_argument('--num', type=int, default=45000)
 parser.add_argument('--test_mode', type=str, default='full')
 parser.add_argument('--model', type=str, default='./save/model.pth')
 args = parser.parse_args()
 
-devices=args.gpu_id
+devices = args.gpu_id
 print(devices)
 batch_size = args.batch_size
 num = args.num
 
 torch.cuda.set_device(devices[0])
 net = PolygonNet(load_vgg=False)
-net = nn.DataParallel(net,device_ids=devices)
+net = nn.DataParallel(net, device_ids=devices)
 net.load_state_dict(torch.load(args.model))
 net.cuda()
 print('finished')
 
 dtype = torch.cuda.FloatTensor
 dtype_t = torch.cuda.LongTensor
-    
+
 if args.test_mode == 'small':
 
     Dataloader = load_data(num, 'trainval', 600, batch_size)
@@ -45,7 +45,7 @@ if args.test_mode == 'small':
     for step, data in enumerate(Dataloader):
         labels = data[4].numpy()
         xx = Variable(data[0].type(dtype))
-        re = net.module.test(xx,60)
+        re = net.module.test(xx, 60)
         for i in range(batch_size):
             labels_p = re.cpu().numpy()[i]
             vertices1 = []
@@ -64,13 +64,14 @@ if args.test_mode == 'small':
             img = Image.fromarray(data[0][i].numpy().astype(np.uint8))
             drw = ImageDraw.Draw(img, 'RGBA')
             drw.polygon(vertices1, (255, 0, 0, 125))
-            img.save('saveimg/small/'+str(step)+'_'+str(i)+'_pred.png', 'PNG')
+            img.save('saveimg/small/' + str(step) + '_' + str(i) + '_pred.png',
+                     'PNG')
 
             img = Image.fromarray(data[0][i].numpy().astype(np.uint8))
             drw = ImageDraw.Draw(img, 'RGBA')
             drw.polygon(vertices2, (255, 0, 0, 125))
-            img.save('saveimg/small/' + str(step) +'_'+str(i)+ '_gt.png', 'PNG')
-
+            img.save('saveimg/small/' + str(step) + '_' + str(i) + '_gt.png',
+                     'PNG')
 
             img1 = Image.new('L', (224, 224), 0)
             ImageDraw.Draw(img1).polygon(vertices1, outline=1, fill=1)
@@ -86,7 +87,8 @@ if args.test_mode == 'small':
 
 elif args.test_mode == 'full':
 
-    selected_classes = ['person', 'car', 'truck', 'bicycle', 'motorcycle', 'rider', 'bus', 'train']
+    selected_classes = ['person', 'car', 'truck', 'bicycle', 'motorcycle',
+                        'rider', 'bus', 'train']
 
     iou = {}
     for cls in selected_classes:
@@ -121,10 +123,10 @@ elif args.test_mode == 'full':
                 scale_w = 224.0 / object_w
                 I_obj = I[min_row:max_row, min_col:max_col, :]
                 I_obj_img = Image.fromarray(I_obj)
-                I_obj_img = I_obj_img.resize((224,224),Image.BILINEAR)
+                I_obj_img = I_obj_img.resize((224, 224), Image.BILINEAR)
                 I_obj_new = np.array(I_obj_img)
                 I_obj = np.rollaxis(I_obj_new, 2)
-                I_obj = I_obj[np.newaxis,:,:,:]
+                I_obj = I_obj[np.newaxis, :, :, :]
 
                 xx = Variable(torch.from_numpy(I_obj).type(dtype))
                 re = net.module.test(xx, 60)
@@ -134,12 +136,12 @@ elif args.test_mode == 'full':
                 for label in labels_p:
                     if (label == 784):
                         break
-                    vertex = (((label % 28) * 8.0 +4) / scale_w + min_col, ((int(label / 28)) * 8.0 +4) / scale_h + min_row)
+                    vertex = (((label % 28) * 8.0 + 4) / scale_w + min_col, (
+                            (int(label / 28)) * 8.0 + 4) / scale_h + min_row)
                     vertices1.append(vertex)
 
                 drw = ImageDraw.Draw(img, 'RGBA')
                 drw.polygon(vertices1, (255, 0, 0, 100))
-
 
                 for points in obj['polygon']:
                     vertex = (points[0], points[1])
@@ -151,9 +153,7 @@ elif args.test_mode == 'full':
         count += 1
         img.save('saveimg/full/' + str(ind) + '_pred.png', 'PNG')
         img_gt.save('saveimg/full/' + str(ind) + '_gt.png', 'PNG')
-        if count>num:
+        if count > num:
             break
 
     print(count)
-
-

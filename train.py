@@ -1,21 +1,23 @@
+import argparse
+
+import torch.utils.data
+from tensorboardX import SummaryWriter
 from torch import nn
 from torch import optim
 from torch.autograd import Variable
-import torch.utils.data
-from tensorboardX import SummaryWriter
-import argparse
+
 from data import load_data
 from model import PolygonNet
 
 parser = argparse.ArgumentParser(description='manual to this script')
-parser.add_argument('--gpu_id', nargs='+',type=int)
+parser.add_argument('--gpu_id', nargs='+', type=int)
 parser.add_argument('--batch_size', type=int, default=8)
 parser.add_argument('--pretrained', type=str, default="False")
 parser.add_argument('--num', type=int, default=45000)
 parser.add_argument('--lr', type=float, default=0.0001)
 args = parser.parse_args()
 
-devices=args.gpu_id
+devices = args.gpu_id
 print(devices)
 batch_size = args.batch_size
 num = args.num
@@ -27,22 +29,24 @@ len_dl = len(Dataloader)
 print(len_dl)
 
 net = PolygonNet()
-net=nn.DataParallel(net,device_ids=devices)
+net = nn.DataParallel(net, device_ids=devices)
 
 if args.pretrained == "True":
-    net.load_state_dict(torch.load('save/model'+'_'+str(num)+'.pth'))
+    net.load_state_dict(torch.load('save/model' + '_' + str(num) + '.pth'))
 net.cuda()
 print('finished')
 
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.Adam(net.parameters(), lr=lr)
-scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[4000,100000], gamma=0.1)
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer,
+                                           milestones=[4000, 100000],
+                                           gamma=0.1)
 writer = SummaryWriter()
 
 dtype = torch.cuda.FloatTensor
 dtype_t = torch.cuda.LongTensor
 
-epoch_r = int(300000/len_dl)
+epoch_r = int(300000 / len_dl)
 for epoch in range(epoch_r):
     for step, data in enumerate(Dataloader):
         scheduler.step()
@@ -52,39 +56,58 @@ for epoch in range(epoch_r):
         x3 = Variable(data[3].type(dtype))
         ta = Variable(data[4].type(dtype_t))
         optimizer.zero_grad()
-        
-        r = net(x,x1,x2,x3)
-        
-        result = r.contiguous().view(-1,28*28+3)
+
+        r = net(x, x1, x2, x3)
+
+        result = r.contiguous().view(-1, 28 * 28 + 3)
         target = ta.contiguous().view(-1)
 
-        
-        loss = loss_function(result,target)
+        loss = loss_function(result, target)
 
         loss.backward()
-        
-        result_index = torch.argmax(result,1)
-        correct = (target==result_index).type(dtype).sum().item()
-        acc = correct*1.0/target.shape[0]
-        
-#        scheduler.step(loss)
+
+        result_index = torch.argmax(result, 1)
+        correct = (target == result_index).type(dtype).sum().item()
+        acc = correct * 1.0 / target.shape[0]
+
+        #        scheduler.step(loss)
         optimizer.step()
-        
-        writer.add_scalar('data/loss',loss,epoch*len_dl+step)
-        writer.add_scalar('data/accuracy',acc,epoch*len_dl+step)
-        writer.add_scalar('data/correct',correct,epoch*len_dl+step)
-        
-        if step%100==0:
-            torch.save(net.state_dict(),'save/model'+'_'+str(num)+'.pth')
+
+        writer.add_scalar('data/loss', loss, epoch * len_dl + step)
+        writer.add_scalar('data/accuracy', acc, epoch * len_dl + step)
+        writer.add_scalar('data/correct', correct, epoch * len_dl + step)
+
+        if step % 100 == 0:
+            torch.save(net.state_dict(),
+                       'save/model' + '_' + str(num) + '.pth')
             for param_group in optimizer.param_groups:
-                print('epoch{} step{}:{}'.format(epoch,step,param_group['lr']))
-        
-    if epoch%5==0 and len_dl>200:
-        torch.save(net.state_dict(),'save/'+str(epoch)+'_'+str(num)+'.pth')
-        
+                print(
+                    'epoch{} step{}:{}'.format(epoch, step, param_group['lr']))
+
+    if epoch % 5 == 0 and len_dl > 200:
+        torch.save(net.state_dict(),
+                   'save/' + str(epoch) + '_' + str(num) + '.pth')
 
 writer.export_scalars_to_json("./all_scalars.json")
 writer.close()
 
-
-
+# if __name__ == '__main__':
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument('--data', '-d', dest='data_dir', type=str,
+#                         help='Location of Data')
+#     parser.add_argument('--log', '-l', dest='log_dir', type=str,
+#                         help='Location of Logs')
+#     parser.add_argument('--gpu_id', '-g', type=int, nargs='+', help='GPU Id')
+#     parser.add_argument('--batch_size', '-b', type=int, help='Batch Size')
+#     parser.add_argument('--lr', type=float, help='Learning Rate')
+#     parser.add_argument('--image_size', '-i', type=int, help='Image Size')
+#     parser.add_argument('--prefix', type=str, help='Model Prefix')
+#     parser.add_argument('--pretrained', '-p', type=str, help='Pretrained '
+#                                                              'Model
+# Location')
+#     parser.add_argument('--config', dest='config_file', help='Config File')
+#     args = parser.parse_args()
+#     config_from_args = args.__dict__
+#     config_file = config_from_args.pop('config_file')
+#     config = get_config('train', config_from_args, config_file)
+#     train(config, config['pretrained'])
