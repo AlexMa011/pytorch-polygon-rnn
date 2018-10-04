@@ -1,0 +1,22 @@
+train:
+  gpu_id: [0]
+  num: 20
+  prefix: ./checkpoint/train1
+  log_dir: ./runs/train1
+  batch_size: 32
+  lr: 0.001
+
+#  pretrained:
+
+val:
+  gpu_id: [0]
+  num: 10
+  model: ./save/model_45000.pth
+  batch_size: 32
+  dataset: val
+
+test:
+  gpu_id: [0]
+  num: 10
+  model: ./save/model_45000.pth
+  dataset: val

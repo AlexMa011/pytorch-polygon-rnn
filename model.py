@@ -14,7 +14,7 @@ class PolygonNet(nn.Module):
     def __init__(self, load_vgg=True):
         super(PolygonNet, self).__init__()
 
-        def basicconv(input_size, output_size, kernel_size, stride, padding):
+        def _make_basic(input_size, output_size, kernel_size, stride, padding):
             """
 
             :rtype: nn.Sequential
@@ -77,11 +77,11 @@ class PolygonNet(nn.Module):
             nn.BatchNorm2d(512),
             nn.ReLU()
         )
-        self.convlayer1 = basicconv(128, 128, 3, 1, 1)
-        self.convlayer2 = basicconv(256, 128, 3, 1, 1)
-        self.convlayer3 = basicconv(512, 128, 3, 1, 1)
-        self.convlayer4 = basicconv(512, 128, 3, 1, 1)
-        self.convlayer5 = basicconv(512, 128, 3, 1, 1)
+        self.convlayer1 = _make_basic(128, 128, 3, 1, 1)
+        self.convlayer2 = _make_basic(256, 128, 3, 1, 1)
+        self.convlayer3 = _make_basic(512, 128, 3, 1, 1)
+        self.convlayer4 = _make_basic(512, 128, 3, 1, 1)
+        self.convlayer5 = _make_basic(512, 128, 3, 1, 1)
         self.poollayer = nn.MaxPool2d(2, 2).cuda()
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear').cuda()
         self.convlstm = ConvLSTM(input_size=(28, 28),
@@ -139,7 +139,7 @@ class PolygonNet(nn.Module):
                 if 'feature' in name and 'running' not in name:
                     vgg_name.append(name)
             cnt = 0
-            print([x[0] for x in self.named_parameters()])
+            # print([x[0] for x in self.named_parameters()])
             for name, param in self.named_parameters():
                 if 'model' in name:
                     param.data.copy_(vgg16_dict[vgg_name[cnt]])

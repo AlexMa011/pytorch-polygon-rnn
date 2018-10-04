@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 from glob import glob
 
 import numpy as np
@@ -12,10 +13,18 @@ args = parser.parse_args()
 selected_classes = ['person', 'car', 'truck', 'bicycle', 'motorcycle', 'rider',
                     'bus', 'train']
 dataset = args.data
-files = glob('img/' + dataset + '/*/*.png')
+files = glob('img/{}/*/*.png'.format(dataset))
 count = 0
 max_count = 0
 ind = 0
+
+img_dir = './new_img/{}'.format(dataset)
+label_dir = './new_label/{}'.format(dataset)
+if not os.path.exists(img_dir):
+    os.makedirs(img_dir)
+if not os.path.exists(label_dir):
+    os.makedirs(label_dir)
+
 
 for file in files:
     json_file = 'label' + file[3:-15] + 'gtFine_polygons.json'

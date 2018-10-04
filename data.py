@@ -22,7 +22,6 @@ class newdataset(Dataset):
         label_name = 'new_label/{}/{}.json'.format(self.dataset, index)
         try:
             img = Image.open(img_name).convert('RGB')
-        #             img = np.rollaxis(np.array(Image.open(img_name)),0, 2)
         except FileNotFoundError:
             return None
         assert not (img is None)
@@ -85,5 +84,5 @@ def load_data(data_num, data_set, len_s, batch_size):
     trans = transforms.ToTensor()
     datas = newdataset(data_num, data_set, len_s, trans)
     Dataloader = torch.utils.data.DataLoader(datas, batch_size=batch_size,
-                                             shuffle=True, drop_last=True)
+                                             shuffle=True, drop_last=False)
     return Dataloader
