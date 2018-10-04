@@ -1,14 +1,15 @@
+import json
+
+import numpy as np
 import torch
+from PIL import Image
 from torch import utils
 from torch.utils.data.dataset import Dataset
-import torch.utils.data as data
-from PIL import Image
-import numpy as np
-import json
 from torchvision import transforms
 
+
 class newdataset(Dataset):
-    def __init__(self, data_num, data_set, len_s, transform = None):
+    def __init__(self, data_num, data_set, len_s, transform=None):
         self.num = data_num
         self.dataset = data_set
         self.length = len_s
@@ -21,7 +22,6 @@ class newdataset(Dataset):
         label_name = 'new_label/{}/{}.json'.format(self.dataset, index)
         try:
             img = Image.open(img_name).convert('RGB')
-        #             img = np.rollaxis(np.array(Image.open(img_name)),0, 2)
         except FileNotFoundError:
             return None
         assert not (img is None)
@@ -73,13 +73,16 @@ class newdataset(Dataset):
         if self.transform is not None:
             img = self.transform(img)
         #         stride = self.length - 2
-        return (img, label_array[2], label_array[:-2], label_array[1:-1], label_index_array[2:])
+        return (img, label_array[2], label_array[:-2], label_array[1:-1],
+                label_index_array[2:])
 
     def __len__(self):
         return self.num  # of how many examples(images?) you have
 
+
 def load_data(data_num, data_set, len_s, batch_size):
     trans = transforms.ToTensor()
-    datas = newdataset(data_num, data_set, len_s,trans)
-    Dataloader = torch.utils.data.DataLoader(datas, batch_size=batch_size, shuffle=True, drop_last=True)
+    datas = newdataset(data_num, data_set, len_s, trans)
+    Dataloader = torch.utils.data.DataLoader(datas, batch_size=batch_size,
+                                             shuffle=True, drop_last=False)
     return Dataloader
