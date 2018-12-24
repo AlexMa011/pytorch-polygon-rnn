@@ -1,8 +1,8 @@
 train:
-  gpu_id: [7,8,9]
-  num: 32
-  prefix: ./checkpoint/train3
-  log_dir: ./runs/train3
+  gpu_id: [0]
+  num: 16
+  prefix: ./checkpoint/train1
+  log_dir: ./runs/train1
   batch_size: 32
   lr: 0.001
 
