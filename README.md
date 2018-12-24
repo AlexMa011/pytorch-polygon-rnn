@@ -70,9 +70,17 @@ python generate_data.py --data train/val/test
 
 3. Run the following command to train.
 ```
-python train.py --gpu_id 0 1 2 --batch_size 4 --pretrained False --lr 0.001
+python train.py --gpu_id 0 1 2 --batch_size 8  --lr 0.0001
 ```
 
-4. Run the following command to test.
+4. Run the following command to validate.
 ```
-python test.py --gpu_id 0 1 2 --mode full/small --model ./save/model.pth
+python validate.py --gpu_id 0 1 2 --batch_size 8
+```
+
+5. Run the following command to test.
+```
+python test.py --gpu_id 0 --model ./save/model.pth
+```
+
+Now you can easily change configurations on default_config.yaml.
