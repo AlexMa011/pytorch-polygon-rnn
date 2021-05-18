@@ -1,7 +1,7 @@
 # pytorch-polygon-rnn
 Pytorch implementation of [Polygon-RNN](http://www.cs.toronto.edu/polyrnn/poly_cvpr17/). 
 Notice that I use another way to handle the first vertex instead of training another model as in the paper.
-
+I will not maintain the project, please refer to [Polygon-RNN++](https://github.com/fidler-lab/polyrnn-pp) for better experience.
 
 ### Difference with the original paper
 
