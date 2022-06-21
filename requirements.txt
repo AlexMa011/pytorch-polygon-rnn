@@ -1,5 +1,5 @@
 torchvision==0.2.1
-numpy==1.15.0
+numpy==1.22.0
 torch==0.4.0
 wget==3.2
 Pillow==5.1.0
